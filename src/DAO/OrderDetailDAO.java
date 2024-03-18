@@ -51,6 +51,7 @@ public class OrderDetailDAO implements DAOinterface<OrderDetail> {
         try {
             Connection c = JDBC.getConnection();
             Statement st = c.createStatement();
+            // Cộng số lượng cũ cho lượng sp
             String sql = "update Products \n"
                     + "set \n"
                     + "UnitsInStock = UnitsInStock +  (select TotalQuantity\n"
@@ -64,14 +65,29 @@ public class OrderDetailDAO implements DAOinterface<OrderDetail> {
                     + "on p.ProductID = o.ProductID\n"
                     + "where p.ProductID = '" + t.getProductID()+ "') "
                     + "where ProductID = '" + t.getProductID()+ "' "
-                    
+            // update cột quanitty giá trị nhập mới      
                     + "update OrderDetails \n"
                     + "set \n"
                     + "OrderID = '" + t.getOrderID() + "', \n"
                     + "ProductID = '" + t.getProductID() + "', \n"
                     + "TotalQuantity = '" + t.getQuantity() + "',\n "
                     + "TotalPrice = '" + t.getPrice() + "'\n"
-                    + "where OrderID = '" + t.getOrderID() + "' and ProductID = '" + t.getProductID()+"'";
+                    + "where OrderID = '" + t.getOrderID() + "' and ProductID = '" + t.getProductID()+"'"
+                    
+            // update cột stock với order gtri quantity mới       
+                    + "update Products \n"
+                    + "set \n"
+                    + "UnitsInStock = UnitsInStock -  (select TotalQuantity\n"
+                    + "from OrderDetails as o\n"
+                    + "join Products as p \n"
+                    + "on p.ProductID = o.ProductID\n"
+                    + "where p.ProductID = '" + t.getProductID()+ "'), "
+                    + "UnitsOnOrder = UnitsOnOrder +  (select TotalQuantity\n"
+                    + "from OrderDetails as o\n"
+                    + "join Products as p \n"
+                    + "on p.ProductID = o.ProductID\n"
+                    + "where p.ProductID = '" + t.getProductID()+ "') "
+                    + "where ProductID = '" + t.getProductID()+ "' ";
             System.out.println(sql);
             int kq = st.executeUpdate(sql);
 
